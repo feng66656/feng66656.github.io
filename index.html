@@ -176,19 +176,36 @@ button,input{font-family:inherit;color:inherit}
              inset 0 1px 0 rgba(255,255,255,.8)}
 .lvl__panel.is-shake{animation:shake .42s cubic-bezier(.36,.07,.19,.97)}
 .lvl__tag{font-size:9.8px;letter-spacing:.26em;color:var(--gold);margin-bottom:6px}
-.lvl__q{margin:0 0 11px;font-size:16px;line-height:1.66;letter-spacing:.01em;color:#22402f}
+.lvl__q{margin:0 0 11px;font-size:18px;line-height:1.62;letter-spacing:.01em;color:#22402f}
 .lvl__q b{color:var(--red);font-weight:600}
 .lvl__form{display:flex;gap:8px}
-.lvl__in{flex:1 1 auto;min-width:0;height:40px;padding:0 11px;font-size:16px;border-radius:2px;
+.lvl__in{flex:1 1 auto;min-width:0;height:44px;padding:0 11px;font-size:18px;border-radius:2px;
   background:rgba(255,255,255,.7);border:1px solid rgba(168,129,58,.42);outline:none;
   transition:border-color .3s,box-shadow .3s}
-.lvl__in::placeholder{color:#a9a291;font-size:14px;letter-spacing:.1em}
+.lvl__in::placeholder{color:#a9a291;font-size:18px;letter-spacing:.04em}
 .lvl__in:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(168,129,58,.14)}
-.lvl__btn{flex:0 0 68px;height:40px;border:0;border-radius:2px;cursor:pointer;font-size:13px;letter-spacing:.14em;
+.lvl__btn{flex:0 0 76px;height:44px;border:0;border-radius:2px;cursor:pointer;font-size:18px;letter-spacing:.1em;
   color:#fdf7e7;background:linear-gradient(160deg,#2c5145,#1b3a2f);
   box-shadow:0 3px 0 #12261f,inset 0 1px 0 rgba(255,255,255,.18);
   transition:transform .14s,box-shadow .14s,background .3s}
 .lvl__btn:active{transform:translateY(2px);box-shadow:0 1px 0 #12261f}
+.lvl__pick{display:none;gap:8px;align-items:center}
+.lvl.is-pick .lvl__form{display:none}
+.lvl.is-pick .lvl__pick{display:flex}
+.lvl__who{flex:1 1 auto;min-width:0;height:44px;display:flex;align-items:center;padding:0 12px;
+  font-size:18px;letter-spacing:.02em;color:#22402f;background:rgba(255,255,255,.72);
+  border:1px solid rgba(168,129,58,.42);border-radius:2px;transition:background .3s,border-color .3s,color .3s}
+.lvl__who.on{color:#8c2f22;border-color:rgba(160,60,40,.5);background:rgba(255,247,236,.92)}
+.lvl__go{flex:0 0 96px;height:44px;border:0;border-radius:2px;cursor:pointer;font-size:18px;letter-spacing:.1em;
+  color:#fdf7e7;background:linear-gradient(160deg,#8c3a2a,#6d271c);
+  box-shadow:0 3px 0 #4d1a12,inset 0 1px 0 rgba(255,255,255,.18);transition:transform .14s,box-shadow .14s}
+.lvl__go:active{transform:translateY(2px);box-shadow:0 1px 0 #4d1a12}
+.lvl.is-pick .lvl__tag{display:none}
+.lvl.is-pick .lvl__q{font-size:18px;line-height:1.6;margin-bottom:9px}
+.lvl.is-pick .lvl__msg{font-size:18px;line-height:1.42}
+.lvl.is-pick .lvl__msg.on{max-height:54px}
+.lvl.is-pick .lvl__hint{font-size:18px;line-height:1.5}
+.lvl.is-pick .lvl__hint.on{max-height:118px}
 .lvl__hint{font-size:11.8px;line-height:1.55;color:#8a7a53;letter-spacing:.02em;
   max-height:0;overflow:hidden;opacity:0;transition:max-height .45s ease,opacity .4s,margin .4s}
 .lvl__hint.on{max-height:44px;opacity:1;margin-top:10px}
@@ -202,6 +219,9 @@ button,input{font-family:inherit;color:inherit}
 .lvl__layer--mid{z-index:2}
 .lvl__layer--near{z-index:3}
 .lvl__layer .hit{pointer-events:auto;cursor:pointer}
+#lvlMid .folk{transition:opacity .45s,filter .45s}
+#lvlMid .folk.dim{opacity:.38;filter:brightness(.62) saturate(.82)}
+#lvlMid .folk.lit{filter:drop-shadow(0 0 6px rgba(255,196,120,.8)) brightness(1.08)}
 .lvl__fx{position:absolute;inset:0;z-index:4;width:100%;height:100%;pointer-events:none}
 .lvl__msg{font-size:11.6px;letter-spacing:.06em;color:#a4402f;max-height:0;overflow:hidden;opacity:0;
   transition:max-height .4s ease,opacity .35s}
@@ -593,6 +613,10 @@ button,input{font-family:inherit;color:inherit}
           <input class="lvl__in" id="lvlInput" type="text" placeholder="写下答案" aria-label="关卡答案">
           <button class="lvl__btn" type="submit">开锁</button>
         </form>
+        <div class="lvl__pick" id="lvlPick">
+          <div class="lvl__who" id="lvlWho">还没指出是谁</div>
+          <button class="lvl__go" id="lvlGo" type="button">就是他</button>
+        </div>
         <div class="lvl__msg" id="lvlMsg"></div>
         <div class="lvl__hint" id="lvlHint"></div>
       </div>
@@ -621,12 +645,23 @@ const QS = [
     hints: ['别真的一圈一圈数。先把人一个一个划掉，看剩下的人编号有什么规律。',
       '只剩 1 个人时，把圆圈收成一条线：他的位置是 0。每多一个人，位置就往前退 3 格，退出去的部分从尾巴绕回来。',
       '递推 J(1)=0，J(n)=(J(n-1)+3)%n。一路推到 100，最后加 1 换成编号。'] },
-  { tag: '和与积', scene: 'sumprod',
-    q: '两个整数 x、y，都大于 1，且 x + y ≤ 100。甲只知道它们的和，乙只知道它们的积。<br>乙：我不知道这两个数。<br>甲：我知道你不知道。<br>乙：那我知道了。<br>甲：那我也知道了。<br>这两个数的<b>和</b>是多少？',
-    ans: [17],
-    hints: ['把范围内所有 x、y 的组合列出来，然后一句话一句话地筛。',
-      '乙第一句说明积至少有两种拆法；甲敢说“我知道你不知道”，说明他这个和拆出来的每一对，积都不唯一。',
-      '第三句筛掉积里还剩多组的，第四句筛掉和里还剩多对的。筛到最后只剩一对，把它们的和报出来。'] },
+  { tag: '说谎者', scene: 'liars', pick: true,
+    names: ['老陶', '阿箬', '康叔', '白生', '九婆', '阿棠', '灯儿', '灰子'],
+    say: [
+      ['阿箬和灯儿，', '说的都是真话。'],
+      ['康叔说的', '是真的。'],
+      ['九婆和白生里，', '有一个在说谎。'],
+      ['老陶和灰子里，', '至少有一个在说谎。'],
+      ['阿棠和白生里，', '有一个在说谎。'],
+      ['灰子和白生里，', '有一个在说谎。'],
+      ['阿箬说的', '是真的。'],
+      ['灯儿和康叔，', '说的都是真话。']
+    ],
+    q: '八个人围坐一圈。<b>只有一个人</b>整句话都是假的，其余七个人字字为真。把他指出来。',
+    ans: [3],
+    hints: ['别先猜。把每个人说的「谁真、谁假」抄成一行，八行并排摆着看。',
+      '康叔、九婆、阿棠说的都是「这两个人里恰好一个在说谎」——这种句子只留两条路：说话的人真，还是假。',
+      '把三句「恰好一个在说谎」并排放，它们都提到同一个名字；最后用那个人的自述，验一遍其余七人全真时站不站得住。'] },
   { tag: '信息编码', scene: 'poison',
     q: '<b>1000 瓶</b>酒，恰好一瓶有毒。你有<b>两轮</b>实验机会：每轮把酒喂给老鼠，等一周看谁死。最少要几只老鼠，才能保证找出那一瓶毒酒？',
     ans: [7],
@@ -637,7 +672,7 @@ const QS = [
 ];
 
 const S = {
-  ready: false, opened: false, passed: false, busy: false, level: -1,
+  ready: false, opened: false, passed: false, busy: false, level: -1, pick: -1,
   slots: [{ qi: 0, hint: 0, solved: false }, { qi: 1, hint: 0, solved: false }, { qi: 2, hint: 0, solved: false }],
   seen: []
 };
@@ -717,6 +752,12 @@ function openLevel(i) {
   if (st.solved) return;
   const q = QS[st.qi];
   S.level = i; S.busy = true;
+  const pick = !!q.pick;
+  $('#lvl').classList.toggle('is-pick', pick);
+  if (pick) {
+    S.pick = -1;
+    const w = $('#lvlWho'); w.textContent = '还没指出是谁'; w.classList.remove('on');
+  }
   $('#lvlNo').textContent = ORD[i] + ' · ' + q.tag;
   $('#lvlTag').textContent = q.tag;
   $('#lvlQ').innerHTML = q.q;
@@ -730,10 +771,11 @@ function openLevel(i) {
   $('#lvlDone').classList.remove('on');
   $('#lvlPanel').classList.remove('is-shake');
   mountScene(q.scene, $('#lvlStage'));
+  if (st.hint > 0 && CUR && CUR.api.press) CUR.api.press(st.hint);
   sfx('lock');
   $('#lvl').classList.add('is-on');
   $('#lvl').setAttribute('aria-hidden', 'false');
-  setTimeout(() => { S.busy = false; $('#lvlInput').focus({ preventScroll: true }); }, 620);
+  setTimeout(() => { S.busy = false; if (!pick) $('#lvlInput').focus({ preventScroll: true }); }, 620);
 }
 
 function closeLevel(quiet) {
@@ -748,12 +790,35 @@ function closeLevel(quiet) {
 
 function bumpEl(el) { el.classList.remove('is-shake'); void el.offsetWidth; el.classList.add('is-shake'); }
 
+function pickPerson(i) {
+  if (S.busy || S.level < 0) return;
+  const q = QS[S.slots[S.level].qi];
+  if (!q.pick || i < 0 || i > 7) return;
+  S.pick = i;
+  const w = $('#lvlWho');
+  w.textContent = '你指的是：' + q.names[i];
+  w.classList.add('on');
+  sfx('sel'); buzz(16);
+  const msg = $('#lvlMsg'); msg.className = 'lvl__msg'; msg.textContent = '';
+  if (CUR && CUR.api && CUR.api.sel) CUR.api.sel(i);
+}
+
 function submitLevel() {
   if (S.busy || S.level < 0) return;
   const i = S.level, q = QS[S.slots[i].qi];
+  if (q.pick) {
+    if (S.pick < 0) {
+      bumpEl($('#lvlPanel')); sfx('no');
+      const m = $('#lvlMsg'); m.textContent = '先在圈里点一个人。'; m.className = 'lvl__msg on';
+      return;
+    }
+    if (q.ans.indexOf(S.pick) > -1) { sfx('clunk'); buzz(22); solveSlot(i); } else wrongSlot(i, S.pick);
+    return;
+  }
   const raw = $('#lvlInput').value;
   if (!raw.trim()) { bumpEl($('#lvlPanel')); sfx('no'); return; }
   const v = canon(raw);
+  sfx('clunk'); buzz(22);
   if (matchAns(q, v)) solveSlot(i); else wrongSlot(i, v);
 }
 
@@ -781,13 +846,15 @@ function wrongSlot(i, v) {
   bumpEl($('#lvlPanel'));
   sfx('no'); gate.no(); buzz([30, 50, 30]);
   st.hint = Math.min(st.hint + 1, 3);
+  if (CUR && CUR.api && CUR.api.press) CUR.api.press(st.hint);
   const hint = $('#lvlHint');
   hint.innerHTML = '<em>提示 ' + st.hint + '/3</em>' + q.hints[st.hint - 1];
   hint.classList.add('on');
-  const k = v === null ? null : Math.round(v);
+  const k = (v === null || q.pick) ? null : Math.round(v);
   const trap = q.trap && k !== null && q.trap[k];
   const msg = $('#lvlMsg');
-  msg.textContent = trap ? trap : '「' + TAUNTS[Math.floor(Math.random() * TAUNTS.length)] + '」—— 再想想。';
+  if (q.pick) msg.textContent = '不是' + q.names[v] + '。再听一遍他们说的。';
+  else msg.textContent = trap ? trap : '「' + TAUNTS[Math.floor(Math.random() * TAUNTS.length)] + '」—— 再想想。';
   msg.className = 'lvl__msg on';
   S.busy = true;
   setTimeout(() => { S.busy = false; }, 700);
@@ -800,6 +867,7 @@ $('#pad1').addEventListener('click', () => openLevel(1));
 $('#pad2').addEventListener('click', () => openLevel(2));
 $('#backBtn').addEventListener('click', () => { if (S.level >= 0 && !S.busy) closeLevel(); });
 $('#lvlForm').addEventListener('submit', e => { e.preventDefault(); submitLevel(); });
+$('#lvlGo').addEventListener('click', submitLevel);
 /* ================= 守门人 ================= */
 $('#gk').innerHTML = `
 <svg viewBox="0 0 112 150" aria-hidden="true">
@@ -1412,19 +1480,22 @@ SCENES.joseph = {
 </g>
 <ellipse cx="170" cy="256" rx="129" ry="129" fill="#12130e" opacity=".82"/>
 <ellipse cx="170" cy="256" rx="129" ry="129" fill="none" stroke="#6d5c3c" stroke-width="1" opacity=".4"/>
-<g class="jfl"><circle cx="16" cy="150" r="26" fill="url(#jl)"/><ellipse cx="16" cy="154" rx="2.4" ry="5.6" fill="#ffcf90"/><rect x="14.4" y="158" width="3.2" height="14" fill="#463a28"/><rect x="6" y="172" width="20" height="3" rx="1.5" fill="#3a3020"/></g>
-<g class="jfl"><circle cx="324" cy="150" r="26" fill="url(#jl)"/><ellipse cx="324" cy="154" rx="2.4" ry="5.6" fill="#ffcf90"/><rect x="322.4" y="158" width="3.2" height="14" fill="#463a28"/><rect x="314" y="172" width="20" height="3" rx="1.5" fill="#3a3020"/></g>
-<text x="170" y="86" text-anchor="middle" font-size="7" letter-spacing="6" fill="#8b7a56" opacity=".7">百 人 环</text>
+<g class="jfl hit"><circle cx="16" cy="150" r="26" fill="url(#jl)"/><ellipse cx="16" cy="154" rx="2.4" ry="5.6" fill="#ffcf90"/><rect x="14.4" y="158" width="3.2" height="14" fill="#463a28"/><rect x="6" y="172" width="20" height="3" rx="1.5" fill="#3a3020"/></g>
+<g class="jfl hit"><circle cx="324" cy="150" r="26" fill="url(#jl)"/><ellipse cx="324" cy="154" rx="2.4" ry="5.6" fill="#ffcf90"/><rect x="322.4" y="158" width="3.2" height="14" fill="#463a28"/><rect x="314" y="172" width="20" height="3" rx="1.5" fill="#3a3020"/></g>
+<ellipse id="jHalo" cx="170" cy="244" rx="156" ry="150" fill="url(#jl)" opacity=".17"/>
+<g id="jPool" opacity=".26"><ellipse cx="36" cy="394" rx="58" ry="13" fill="url(#jl)"/><ellipse cx="304" cy="394" rx="58" ry="13" fill="url(#jl)"/></g>
+<g id="jsm" opacity=".22"><ellipse cx="18" cy="120" rx="9" ry="16" fill="#4a4234"/><ellipse cx="322" cy="112" rx="8" ry="14" fill="#4a4234"/></g>
+<text x="170" y="86" text-anchor="middle" font-size="9" letter-spacing="4" fill="#8b7a56" opacity=".55">百 人 环</text>
 </svg>`,
   mid: (function () {
     let s = '', n = '';
     for (let i = 0; i < 100; i++) {
       const a = (i + 1) / 100 * 6.2832 - 1.5708;
       const x = 170 + Math.cos(a) * 122, y = 256 + Math.sin(a) * 122;
-      s += '<g class="jp hit" data-i="' + i + '" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')"><g class="ji">'
+      s += '<g class="jp hit" data-i="' + i + '" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')"><g class="ji"><g class="jb">'
         + '<ellipse cx="0" cy=".6" rx="3.6" ry="1" fill="rgba(0,0,0,.45)"/>'
         + '<circle cx="0" cy="-8.6" r="2.4" fill="#d8c4a2"/>'
-        + '<path d="M0-7.2 2.5-1H-2.5Z" fill="#7f6e54"/></g></g>';
+        + '<path d="M0-7.2 2.5-1H-2.5Z" fill="#7f6e54"/></g></g></g>';
       if ((i + 1) % 10 === 0) {
         const rx = 170 + Math.cos(a) * 143, ry = 256 + Math.sin(a) * 143;
         n += '<text x="' + rx.toFixed(1) + '" y="' + (ry + 2.4).toFixed(1) + '" text-anchor="middle" font-size="6.2" fill="#8b7a58" opacity=".8">' + (i + 1) + '</text>';
@@ -1447,11 +1518,13 @@ SCENES.joseph = {
 </svg>`,
   build: function (host) {
     const els = $all('.jp', host.querySelector('#lvlMid'));
+    const jbs = $all('.jb', host.querySelector('#lvlMid'));
     const ring = host.querySelector('#jRing');
     const bub = host.querySelector('#jBub'), bubT = host.querySelector('#jBubT');
     const flames = $all('.jfl', host.querySelector('#lvlFar'));
+    const halo = host.querySelector('#jHalo'), pool = host.querySelector('#jPool'), smk = host.querySelector('#jsm');
     let alive = [], ptr = -1, cnt = 0, outN = 0, holdT = 0, acc = 0, won = false;
-    let fallen = [], popI = -1, popT = -1e9, failT = -1e9;
+    let fallen = [], popI = -1, popT = -1e9, failT = -1e9, pressK = 0, winK = 0, jbc = 0, sparkK = 0;
 
     function center(i) {
       const a = (i + 1) / 100 * 6.2832 - 1.5708;
@@ -1486,7 +1559,22 @@ SCENES.joseph = {
     reset();
     return {
       frame: function (t, dt) {
-        flames.forEach((f, k) => f.setAttribute('opacity', (.72 + .28 * Math.sin(t * .007 + k * 2.1)).toFixed(2)));
+        const fl = 1 + (t - failT < 560 ? 1.8 * (1 - (t - failT) / 560) : 0) + sparkK * 1.5;
+        const dk = 1 - pressK * .075;
+        sparkK = Math.max(0, sparkK - dt / 620);
+        flames.forEach((f, k) => f.setAttribute('opacity', Math.min(1, (.7 + .3 * Math.sin(t * .007 + k * 2.1) + .1 * Math.sin(t * .019 + k)) * Math.min(1.6, fl) * dk).toFixed(2)));
+        if (halo) halo.setAttribute('opacity', (((.14 + .045 * Math.sin(t * .0009)) * fl * dk) + winK * .46).toFixed(3));
+        if (pool) pool.setAttribute('opacity', ((.23 * fl * dk) + winK * .26).toFixed(3));
+        if (smk) smk.setAttribute('transform', 'translate(0 ' + (Math.sin(t * .00042) * 6).toFixed(1) + ')');
+        if (!won) {
+          jbc = (jbc + 1) % 3;
+          const lean = holdT ? .5 : 0;
+          for (let i = jbc; i < jbs.length; i += 3) {
+            const e = jbs[i]; if (!e) continue;
+            const b = Math.sin(t * .0023 + i * .67);
+            e.setAttribute('transform', 'translate(' + (b * lean).toFixed(2) + ' ' + (b * .4).toFixed(2) + ')');
+          }
+        }
         if (ring) {
           if (t - failT < 420) ring.setAttribute('transform', 'translate(' + (Math.sin((t - failT) * .06) * 3).toFixed(2) + ' 0)');
           else if (ring.getAttribute('transform')) ring.removeAttribute('transform');
@@ -1501,6 +1589,7 @@ SCENES.joseph = {
           f.el.setAttribute('transform', 'translate(0 ' + (p * p * 4).toFixed(2) + ') rotate(' + (p * 74).toFixed(1) + ')');
           f.el.style.opacity = (1 - p * .84).toFixed(2);
         });
+        winK = Math.max(0, winK - dt / 2400);
         if (won) return;
         if (holdT) {
           if (t - holdT > 1900) { holdT = 0; reset(); }
@@ -1510,7 +1599,7 @@ SCENES.joseph = {
         while (acc > 168) { acc -= 168; tick(t); if (holdT) break; }
       },
       win: function () {
-        won = true;
+        won = true; winK = 1;
         bub.setAttribute('opacity', '0');
         els.forEach(g => {
           const c = g.querySelector('circle'), p = g.querySelector('path');
@@ -1519,118 +1608,219 @@ SCENES.joseph = {
         });
       },
       fail: function () { failT = performance.now(); },
+      press: function (k) { pressK = k; },
       hit: function (el) {
         const g = el.closest && el.closest('.jp');
-        if (!g) return;
-        popI = Number(g.getAttribute('data-i')) || 0;
-        popT = performance.now();
-        sfx('lock');
+        if (g) {
+          popI = Number(g.getAttribute('data-i')) || 0;
+          popT = performance.now();
+          sfx('lock');
+          return;
+        }
+        if (el.closest && el.closest('.jfl')) { sparkK = 1; sfx('unlock'); buzz(9); }
       }
     };
   }
 };
 
-/* ================= 场景二：静室 · 和与积 ================= */
-SCENES.sumprod = {
-  bg: 'radial-gradient(72% 50% at 50% 18%,#202a25,#070a09 78%)',
-  fx: 'star',
-  far: `<svg viewBox="0 0 340 520" preserveAspectRatio="xMidYMid slice">
+/* ================= 场景二：石室 · 八人环（说谎者） ================= */
+SCENES.liars = (function () {
+  const NAMES = ['老陶', '阿箬', '康叔', '白生', '九婆', '阿棠', '灯儿', '灰子'];
+  const SAY = [
+    ['阿箬和灯儿，', '说的都是真话。'],
+    ['康叔说的', '是真的。'],
+    ['九婆和白生里，', '有一个在说谎。'],
+    ['老陶和灰子里，', '至少有一个在说谎。'],
+    ['阿棠和白生里，', '有一个在说谎。'],
+    ['灰子和白生里，', '有一个在说谎。'],
+    ['阿箬说的', '是真的。'],
+    ['灯儿和康叔，', '说的都是真话。']
+  ];
+  /* 椭圆站位：上排远、下排近 */
+  const POS = [[170, 310], [258, 331], [294, 382], [258, 433], [170, 454], [82, 433], [46, 382], [82, 331]];
+  const SC = POS.map(p => +(1.02 + (p[1] - 310) / 144 * 0.36).toFixed(3));
+  const ANS = 3;
+  const OPT = [
+    { shirt: '#6a4a2f', pants: '#3a3028', hair: '#4b3c2b', skin: '#e2bd97' },
+    { shirt: '#33564c', pants: '#2a332e', hair: '#241f19' },
+    { shirt: '#5a3030', pants: '#2c2624', hair: '#2a241f' },
+    { shirt: '#c6bfab', pants: '#3b3a33', hair: '#2b2620' },
+    { shirt: '#4a4a52', pants: '#33333a', hair: '#b9b4a8', skin: '#e8c6a4' },
+    { shirt: '#7a5a2e', pants: '#3a2f24', hair: '#2e241a' },
+    { shirt: '#3c4a5a', pants: '#2b3038', hair: '#1f1a15', skin: '#f2d3b4' },
+    { shirt: '#4a453c', pants: '#2f2b26', hair: '#3a332b', skin: '#d8b895' }
+  ];
+  /* 每人一件能认出来的东西 */
+  const PROP = [
+    '<path d="M-12.6-25.4c-2.6.4-4.2 3-4 5.6.2 2.2 1.6 3.2 1.6 5.2 0 1.4-.8 2.2-.8 2.2h7.6s-.8-.8-.8-2.2c0-2 1.4-3 1.6-5.2.2-2.6-2.6-6-5.2-5.6Z" fill="#a8823f"/><path d="M-12-26.6 4-38" stroke="#6a563a" stroke-width="1.1"/>',
+    '<path d="M-19.4-53.2 0-65.4 19.4-53.2Z" fill="#b39257"/><path d="M-19.4-53.2h38.8" stroke="#7d6234" stroke-width="1.6" stroke-linecap="round"/>',
+    '<path d="M-6.2-48.8h7.2v4.2h-7.2Z" fill="#181614"/><path d="M-6.2-47.6 7.4-51" stroke="#181614" stroke-width="1.4"/>',
+    '<g transform="translate(0 -27.6)"><rect x="-11" y="-3.8" width="22" height="4.6" rx=".7" fill="#7d4a39"/><rect x="-10" y="-8.8" width="20" height="4.6" rx=".7" fill="#3e5a68"/><rect x="-10.8" y="-13.8" width="21.6" height="4.6" rx=".7" fill="#6d6a43"/><rect x="-7.2" y="-3.8" width="3.2" height="4.6" fill="#e6dcc4" opacity=".85"/></g>',
+    '<path d="M12.6-1v-32c0-5.2 3-7.4 6.2-7.4 3 0 4.8 2 4.8 4.8" stroke="#6a5335" stroke-width="2.6" fill="none" stroke-linecap="round"/>',
+    '<path d="M-8.6-40.8c4.2 4.2 13 4.2 17.2 0l1.2 4.6c-5.2 4.2-14.4 4.2-19.6 0Z" fill="#b23a2c"/><path d="M5.4-37.4 8.8-26.2l3.8-1.4-3.2-10.8Z" fill="#932c22"/>',
+    '<g><path d="M9.8-17.6v-3.4" stroke="#8a7448" stroke-width="1.2"/><rect x="5.4" y="-15.6" width="9" height="12" rx="2" fill="#f0c479" opacity=".95"/><path d="M5.4-15.6h9M5.4-3.6h9" stroke="#8a6a34" stroke-width="1.4"/><circle id="liHold" cx="10" cy="-9.6" r="17" fill="#ffce84" opacity=".13"/></g>',
+    '<ellipse cx="-3.4" cy="-44.4" rx="2.8" ry="1.7" fill="#5b544a" opacity=".85"/><ellipse cx="3.8" cy="-49.6" rx="2.4" ry="1.5" fill="#5b544a" opacity=".7"/><path d="M-7.6-34.6h15.2" stroke="#3a352d" stroke-width="1.2" opacity=".5"/>'
+  ];
+  const ARM = [[6, 0], [0, 0], [0, 0], [62, -62], [0, -8], [0, 0], [-10, -16], [0, 0]];
+
+  let sh = '', folk = '';
+  for (let i = 0; i < 8; i++) {
+    const p = POS[i], s = SC[i];
+    sh += '<ellipse cx="' + (p[0] + (p[0] - 170) * .12).toFixed(1) + '" cy="' + (p[1] + 2) +
+      '" rx="' + (9.6 * s).toFixed(1) + '" ry="' + (2.7 * s).toFixed(1) + '" fill="rgba(0,0,0,.45)"/>';
+  }
+  [0, 7, 1, 6, 2, 5, 3, 4].forEach(i => {
+    const p = POS[i], s = SC[i];
+    folk += '<g class="folk hit" data-i="' + i + '" transform="translate(' + p[0] + ' ' + p[1] + ') scale(' + s + ')">' +
+      person(0, 0, 1, OPT[i]) + PROP[i] + '</g>';
+  });
+
+  return {
+    bg: 'radial-gradient(70% 52% at 50% 20%,#2a2219,#07090a 76%)',
+    fx: 'ember',
+    far: `<svg viewBox="0 0 340 520" preserveAspectRatio="xMidYMid slice">
 <defs>
-<linearGradient id="spw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#232d28"/><stop offset="1" stop-color="#080b0a"/></linearGradient>
-<radialGradient id="spl"><stop offset="0" stop-color="#ffd79a" stop-opacity=".45"/><stop offset="1" stop-color="#ffd79a" stop-opacity="0"/></radialGradient>
+<linearGradient id="liW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c261d"/><stop offset=".55" stop-color="#151310"/><stop offset="1" stop-color="#08090a"/></linearGradient>
+<radialGradient id="liGl"><stop offset="0" stop-color="#ffd79a" stop-opacity=".7"/><stop offset=".45" stop-color="#e8a95a" stop-opacity=".22"/><stop offset="1" stop-color="#e8a95a" stop-opacity="0"/></radialGradient>
+<linearGradient id="liCon" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffcf8a" stop-opacity=".34"/><stop offset="1" stop-color="#ffcf8a" stop-opacity="0"/></linearGradient>
+<radialGradient id="liFl" cx=".5" cy=".4" r=".62"><stop offset="0" stop-color="#241d16"/><stop offset="1" stop-color="#120f0d"/></radialGradient>
 </defs>
-<rect width="340" height="520" fill="url(#spw)"/>
-<g stroke="#2b3631" stroke-width=".8" opacity=".5">
-<path d="M0 150h340M0 280h340M0 400h340M34 0v520M306 0v520"/>
+<rect width="340" height="520" fill="url(#liW)"/>
+<g stroke="#3c3428" stroke-width=".7" fill="none" opacity=".3">
+<path d="M0 86h340M0 152h340M0 218h340M0 268h340"/>
+<path d="M46 86v66M162 86v66M278 86v66M-12 152v66M104 152v66M220 152v66M46 218v50M162 218v50M278 218v50"/>
 </g>
-<rect x="114" y="70" width="112" height="94" rx="2" fill="#0e1512" stroke="#45544e" stroke-width="1"/>
-<rect x="118" y="74" width="104" height="86" rx="1" fill="none" stroke="#2c3a35" stroke-width=".7"/>
-<text x="171" y="98" text-anchor="middle" font-size="7.8" letter-spacing="4.4" fill="#7e918a">候 选</text>
-<text id="spCount" x="171" y="142" text-anchor="middle" font-size="30" letter-spacing="1" fill="#cfe3d8">2401</text>
-<g><circle cx="20" cy="196" r="34" fill="url(#spl)"/><rect x="18" y="202" width="5" height="14" fill="#4a5a52"/><ellipse cx="20" cy="197" rx="3.4" ry="6" fill="#ffdcae"/></g>
-<g><circle cx="320" cy="196" r="34" fill="url(#spl)"/><rect x="317" y="202" width="5" height="14" fill="#4a5a52"/><ellipse cx="320" cy="197" rx="3.4" ry="6" fill="#ffdcae"/></g>
-<g fill="#1b2622" opacity=".9"><rect x="0" y="404" width="340" height="40"/></g>
-<text x="170" y="434" text-anchor="middle" font-size="6.8" letter-spacing="5.6" fill="#6f837c" opacity=".7">一 道 墙 · 两 张 纸</text>
+<path d="M96 300V196a74 74 0 0 1 148 0v104" fill="none" stroke="#4e4433" stroke-width="2" opacity=".4"/>
+<g id="liSc1" opacity=".85"><ellipse cx="36" cy="196" rx="26" ry="34" fill="url(#liGl)" opacity=".5"/><ellipse cx="36" cy="200" rx="1.9" ry="4.4" fill="#ffd18a"/><rect x="34.4" y="202" width="3.2" height="10" fill="#3a3226"/><rect x="28" y="212" width="16" height="2.6" rx="1.3" fill="#332c22"/></g>
+<g id="liSc2" opacity=".85"><ellipse cx="304" cy="196" rx="26" ry="34" fill="url(#liGl)" opacity=".5"/><ellipse cx="304" cy="200" rx="1.9" ry="4.4" fill="#ffd18a"/><rect x="302.4" y="202" width="3.2" height="10" fill="#3a3226"/><rect x="296" y="212" width="16" height="2.6" rx="1.3" fill="#332c22"/></g>
+<g stroke="#3f382c" stroke-width="1" fill="none" opacity=".5"><path d="M14 0v54"/><path d="M326 0v44"/></g>
+<g>
+<path d="M170 0v48" stroke="#4a4030" stroke-width="1.8"/>
+<ellipse id="liGlow" cx="170" cy="62" rx="42" ry="54" fill="url(#liGl)" opacity=".9"/>
+<path d="M154 56h32l-5 11h-22Z" fill="#332d24"/>
+<path d="M144 67h52" stroke="#4a4030" stroke-width="1.8"/>
+<ellipse cx="170" cy="70" rx="6.4" ry="8.4" fill="#ffdca8"/>
+</g>
+<path id="liCone" d="M150 72H190L304 470H36Z" fill="url(#liCon)" opacity=".42"/>
+<ellipse cx="170" cy="430" rx="210" ry="126" fill="url(#liFl)"/>
+<g id="liFog1" opacity=".45"><ellipse cx="72" cy="482" rx="126" ry="15" fill="#4b4a42"/><ellipse cx="252" cy="498" rx="140" ry="12" fill="#44433c"/></g>
+<g id="liFog2" opacity=".3"><ellipse cx="176" cy="466" rx="152" ry="11" fill="#565548"/></g>
 </svg>`,
-  mid: `<svg viewBox="0 0 340 520" preserveAspectRatio="xMidYMid slice">
-<g id="spRoot">
-${person(92, 414, 1.5, { shirt: '#33473f', pants: '#252c28', hair: '#241f18' })}
-${person(248, 414, 1.5, { shirt: '#3a3a31', pants: '#26251f', hair: '#1f1b16', flip: true })}
-<rect x="152" y="304" width="36" height="110" fill="#2b2118" class="hit" data-hit="wall"/>
-<rect x="152" y="304" width="36" height="110" fill="none" stroke="#6c5636" stroke-width="1.1" opacity=".85"/>
-<path d="M158 320h24M158 348h24M158 376h24M158 402h24" stroke="#4a3826" stroke-width="1"/>
-<rect x="0" y="396" width="340" height="20" fill="#2a2119"/>
-<rect x="0" y="396" width="340" height="2.6" fill="#5c4b33"/>
-<rect x="56" y="388" width="44" height="13" rx="1" fill="#e8dfc9" transform="rotate(-4 78 395)"/>
-<rect x="32" y="389" width="20" height="3" rx="1.4" fill="#8d7c5c" transform="rotate(-15 42 391)"/>
-<rect x="242" y="388" width="44" height="13" rx="1" fill="#e8dfc9" transform="rotate(3 264 395)"/>
-<rect x="290" y="389" width="20" height="3" rx="1.4" fill="#8d7c5c" transform="rotate(14 300 391)"/>
-<g id="spL" style="opacity:0;transition:opacity .4s">
-<path d="M8 258h150v46H60l-14 12v-12H8Z" fill="#0e1614" stroke="#5c7a6e" stroke-width="1"/>
-<text id="spLT" x="83" y="286" text-anchor="middle" font-size="16" fill="#bcd6c9">我知道你不知道。</text>
-</g>
-<g id="spR" style="opacity:0;transition:opacity .4s">
-<path d="M182 258h150v46H280l-14 12v-12h-84Z" fill="#0e1614" stroke="#7a6a4e" stroke-width="1"/>
-<text id="spRT" x="257" y="286" text-anchor="middle" font-size="16" fill="#ddd0b0">我不知道。</text>
-</g>
-</g>
+    mid: '<svg viewBox="0 0 340 520" preserveAspectRatio="xMidYMid slice">' +
+      '<defs><radialGradient id="liSelG"><stop offset="0" stop-color="#ffcf8a" stop-opacity=".5"/><stop offset="1" stop-color="#ffcf8a" stop-opacity="0"/></radialGradient>' +
+      '<linearGradient id="liBeamG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd79a" stop-opacity=".04"/><stop offset=".72" stop-color="#ffe0ae" stop-opacity=".16"/><stop offset="1" stop-color="#ffe6bc" stop-opacity=".42"/></linearGradient></defs>' +
+      '<g id="liSh">' + sh + '</g><g id="liGang">' + folk + '</g><g id="liUI" pointer-events="none">' +
+      '<path id="liBeam" d="" fill="url(#liBeamG)" opacity="0"/>' +
+      '<g id="liSel" style="opacity:0;transition:opacity .3s"><ellipse cx="0" cy="-28" rx="34" ry="42" fill="url(#liSelG)"/>' +
+      '<ellipse cx="0" cy="0" rx="22" ry="6.4" fill="none" stroke="#ffd18a" stroke-width="1.7" stroke-dasharray="3.4 4.4"/></g>' +
+      '<g id="liBub" style="opacity:0;transition:opacity .35s">' +
+      '<rect x="30" y="110" width="280" height="98" rx="9" fill="#0b1310" stroke="#c9a35c" stroke-opacity=".62"/>' +
+      '<path id="liTail" d="" fill="#0b1310" fill-opacity=".92" stroke="#c9a35c" stroke-opacity=".62"/>' +
+      '<text id="liNm" x="48" y="140" font-size="17" letter-spacing="1.4" fill="#e9c98d"></text>' +
+      '<text id="liL1" x="48" y="172" font-size="16" fill="#dcece2"></text>' +
+      '<text id="liL2" x="48" y="197" font-size="16" fill="#dcece2"></text>' +
+      '<circle cx="39" cy="135" r="2.4" fill="#c9a35c" opacity=".85"/>' +
+      '</g></g></svg>',
+    near: `<svg viewBox="0 0 340 520" preserveAspectRatio="xMidYMid slice">
+<defs><radialGradient id="liV" cx=".5" cy=".44" r=".74"><stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".8"/></radialGradient></defs>
+<rect width="340" height="520" fill="url(#liV)"/>
+<rect y="492" width="340" height="28" fill="#0b0a09" opacity=".85"/>
+<rect id="liFlash" width="340" height="520" fill="#ffe0b0" opacity="0"/>
 </svg>`,
-  near: `<svg viewBox="0 0 340 520" preserveAspectRatio="xMidYMid slice">
-<defs><radialGradient id="spv" cx=".5" cy=".42" r=".74"><stop offset=".42" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".78"/></radialGradient></defs>
-<rect y="414" width="340" height="106" fill="#141110"/>
-<rect y="414" width="340" height="2" fill="#3a2e1f"/>
-<ellipse cx="60" cy="438" rx="52" ry="10" fill="#3a2e22" opacity=".22"/>
-<ellipse cx="282" cy="438" rx="52" ry="10" fill="#3a2e22" opacity=".22"/>
-<rect width="340" height="520" fill="url(#spv)"/>
-</svg>`,
-  build: function (host) {
-    const rs = rigs(host.querySelector('#lvlMid'));
-    const root = host.querySelector('#spRoot');
-    const L = host.querySelector('#spL'), R = host.querySelector('#spR');
-    const LT = host.querySelector('#spLT'), RT = host.querySelector('#spRT');
-    const CNT = host.querySelector('#spCount');
-    const T1 = 600, T2 = 2500, T3 = 4400, T4 = 6300, CYC = 9400;
-    let winK = 0, failT = -1e9;
+    build: function (host) {
+      const els = [];
+      host.querySelectorAll('.folk').forEach(g => { els[+g.dataset.i] = g; });
+      const rr = els.map(g => rigs(g)[0]);
+      const bub = host.querySelector('#liBub');
+      const nm = host.querySelector('#liNm'), l1 = host.querySelector('#liL1'), l2 = host.querySelector('#liL2');
+      const tail = host.querySelector('#liTail'), beam = host.querySelector('#liBeam');
+      const selG = host.querySelector('#liSel'), gang = host.querySelector('#liGang');
+      const fog1 = host.querySelector('#liFog1'), fog2 = host.querySelector('#liFog2');
+      const glow = host.querySelector('#liGlow'), cone = host.querySelector('#liCone');
+      const flash = host.querySelector('#liFlash');
+      const sc1 = host.querySelector('#liSc1'), sc2 = host.querySelector('#liSc2');
+      const hold = host.querySelector('#liHold'), shG = host.querySelector('#liSh');
+      let auto = true, seq = 0, last = -1, spk = -1, sel = -1, winK = 0, failT = -1e9, pressK = 0;
 
-    return {
-      frame: function (t, dt) {
-        const ct = t % CYC;
-        const ln = ct < T1 ? 0 : ct < T2 ? 1 : ct < T3 ? 2 : ct < T4 ? 3 : 4;
-        if (root) root.setAttribute('transform', t - failT < 400 ? 'translate(' + (Math.sin((t - failT) * .055) * 3.4).toFixed(2) + ' 0)' : '');
-        if (CNT) CNT.textContent = ct < T1 ? '2401' : ct < T2 ? '1783' : ct < T3 ? '145' : ct < T4 ? '86' : '1';
-        if (RT) RT.textContent = ct < T3 ? '我不知道。' : '那我知道了。';
-        if (LT) LT.textContent = ct < T4 ? '我知道你不知道。' : '那我也知道了。';
-        if (R) R.style.opacity = ct < T1 ? '0' : ((ln === 1 || ln === 3) ? '1' : '.2');
-        if (L) L.style.opacity = ct < T2 ? '0' : ((ln === 2 || ln === 4) ? '1' : '.2');
-
-        const br = Math.sin(t * .0028);
-        const sh = Math.sin(ct * .03) * 7;
-        if (rs[0]) {
-          const o = { bob: br * .8, tor: 1.2 + br * .6, head: 2 };
-          if (ln === 2) o.head = -5 - Math.abs(Math.sin((ct - T2) * .007)) * 7;
-          else if (ln === 4) { o.head = -10; o.armR = -22 - Math.abs(Math.sin((ct - T4) * .006)) * 10; o.tor = -2.4; }
-          pose(rs[0], o);
+      function show(i) {
+        spk = i;
+        if (nm) nm.textContent = NAMES[i];
+        if (l1) l1.textContent = SAY[i][0];
+        if (l2) l2.textContent = SAY[i][1];
+        const p = POS[i], s = SC[i];
+        const hx = p[0], hy = +(p[1] - 47 * s).toFixed(1);
+        const bx = Math.max(72, Math.min(268, hx));
+        const tx = +(bx + (hx - bx) * .66).toFixed(1), ty = +(205 + (hy + 2 - 205) * .66).toFixed(1);
+        if (tail) tail.setAttribute('d', 'M' + (bx - 22).toFixed(1) + ' 205 L' + (bx + 22).toFixed(1) + ' 205 L' + (tx + 6).toFixed(1) + ' ' + ty + ' L' + (tx - 6).toFixed(1) + ' ' + ty + ' Z');
+        if (beam) beam.setAttribute('d', 'M152 72 H188 L' + (hx + 46) + ' ' + hy + ' H' + (hx - 46) + ' Z');
+        if (bub) bub.style.opacity = '1';
+        if (selG) { selG.setAttribute('transform', 'translate(' + p[0] + ' ' + p[1] + ')'); selG.style.opacity = sel >= 0 ? '.85' : '0'; }
+        for (let k = 0; k < 8; k++) {
+          const g = els[k]; if (!g) continue;
+          g.classList.toggle('lit', k === i);
+          g.classList.toggle('dim', k !== i);
+          g.classList.toggle('sel', k === i && sel >= 0);
         }
-        if (rs[1]) {
-          const o = { bob: -br * .8, tor: -1.2 + br * .6, head: -2 };
-          if (ln === 1) { o.head = sh; o.tor = -3; }
-          else if (ln === 3) o.head = -6 + Math.abs(Math.sin((ct - T3) * .008)) * 8;
-          pose(rs[1], o);
-        }
-        winK = Math.max(0, winK - dt / 2400);
-        if (CNT) CNT.setAttribute('fill', winK > 0 ? '#f2c96e' : '#cfe3d8');
-      },
-      win: function () {
-        winK = 1;
-        if (CNT) CNT.textContent = '1';
-      },
-      fail: function () { failT = performance.now(); },
-      hit: function (el) {
-        if (el.closest && (el.closest('#spL') || el.closest('#spR') || el.closest('[data-hit="wall"]'))) sfx('paper');
       }
-    };
-  }
-};
+
+      return {
+        frame: function (t, dt) {
+          if (last < 0) { last = t; show(0); }
+          if (auto && t - last > 2300) { last = t; seq = (seq + 1) % 8; show(seq); }
+          const fl = .78 + .16 * Math.sin(t * .011) + .07 * Math.sin(t * .027 + 1.3);
+          if (glow) glow.setAttribute('opacity', (.55 + .45 * fl - pressK * .1).toFixed(2));
+          if (cone) cone.setAttribute('opacity', (.34 + .3 * fl - pressK * .05).toFixed(2));
+          if (beam) beam.setAttribute('opacity', (spk < 0 ? 0 : .66 + .3 * fl).toFixed(2));
+          if (sc1) sc1.setAttribute('opacity', (.5 + .32 * Math.abs(Math.sin(t * .0051 + .4)) - pressK * .12).toFixed(2));
+          if (sc2) sc2.setAttribute('opacity', (.46 + .34 * Math.abs(Math.sin(t * .0043 + 2.2)) - pressK * .12).toFixed(2));
+          if (shG) shG.setAttribute('opacity', (.66 + .34 * fl).toFixed(2));
+          if (hold) hold.setAttribute('opacity', (.12 + .12 * Math.abs(Math.sin(t * .0042)) + (spk === 6 ? .22 : 0)).toFixed(2));
+          if (fog1) fog1.setAttribute('opacity', (.45 + pressK * .13).toFixed(2));
+          if (fog2) fog2.setAttribute('opacity', (.3 + pressK * .11).toFixed(2));
+          if (fog1) fog1.setAttribute('transform', 'translate(' + (Math.sin(t * .00013) * 24).toFixed(1) + ' 0)');
+          if (fog2) fog2.setAttribute('transform', 'translate(' + (Math.cos(t * .00009) * 32 + 8).toFixed(1) + ' 0)');
+          const fk = t - failT;
+          const shake = fk < 420 ? Math.sin(fk * .05) * 3.2 * (1 - fk / 420) : 0;
+          if (gang) gang.setAttribute('transform', shake ? 'translate(' + shake.toFixed(2) + ' 0)' : '');
+          for (let i = 0; i < 8; i++) {
+            const r = rr[i]; if (!r) continue;
+            const ph = i * 1.73;
+            const o = {
+              bob: Math.sin(t * .0017 + ph) * .5 + Math.sin(t * .00061 + ph) * .34,
+              tor: Math.sin(t * .0009 + ph) * 1.5 + Math.sin(t * .00043 + ph * 1.4) * 1.7,
+              head: Math.sin(t * .00062 + ph * 2.1) * 6.5,
+              armL: ARM[i][0], armR: ARM[i][1]
+            };
+            if (winK > .12 && i !== ANS) o.head = -9;
+            if (i === spk) {
+              o.head = -4 + Math.sin(t * .0024) * 1.6;
+              o.tor = -1.6;
+              o.bob = Math.sin(t * .0038) * .7;
+              o.armR = ARM[i][1] - 4 - Math.abs(Math.sin(t * .0021)) * 5;
+              o.armL = ARM[i][0] + 3;
+            }
+            pose(r, o);
+          }
+          winK = Math.max(0, winK - dt / 2200);
+          if (flash) flash.setAttribute('opacity', (winK * .5).toFixed(3));
+        },
+        win: function () {
+          auto = false; sel = ANS; winK = 1;
+          show(ANS);
+          for (let k = 0; k < 8; k++) if (els[k]) els[k].classList.toggle('dim', k !== ANS);
+        },
+        fail: function () { failT = performance.now(); },
+        press: function (k) { pressK = k; },
+        sel: function (i) { auto = false; sel = i; show(i); },
+        hit: function (el) {
+          const g = el.closest && el.closest('.folk');
+          if (g) { pickPerson(+g.dataset.i); return; }
+          sfx('paper');
+        }
+      };
+    }
+  };
+})();
 
 /* ================= 场景三：酒窖 · 两轮实验（毒酒） ================= */
 SCENES.poison = {
@@ -1651,13 +1841,17 @@ SCENES.poison = {
       + '<g fill="#040708" opacity=".55"><path d="M-6 420V226a32 32 0 0 1 64 0v194Z"/><path d="M136 420V196a34 34 0 0 1 68 0v224Z"/><path d="M282 420V226a32 32 0 0 1 64 0v194Z"/></g>'
       + '<g stroke="#35504f" stroke-width=".8" fill="none" opacity=".35"><path d="M0 424h340"/><path d="M28 424v-140"/><path d="M312 424v-140"/></g>'
       + '<g opacity=".3" fill="#3d5a56"><ellipse cx="66" cy="196" rx="26" ry="36"/><ellipse cx="92" cy="330" rx="18" ry="30"/><ellipse cx="262" cy="250" rx="14" ry="24"/></g>'
-      + '<g><circle cx="18" cy="212" r="28" fill="url(#pl)"/><rect x="15" y="218" width="6" height="14" fill="#3f5b5c"/><ellipse cx="18" cy="214" rx="3.4" ry="6" fill="#cfeef5" opacity=".85"/></g>'
-      + '<g><circle cx="322" cy="212" r="28" fill="url(#pl)"/><rect x="319" y="218" width="6" height="14" fill="#3f5b5c"/><ellipse cx="322" cy="214" rx="3.4" ry="6" fill="#cfeef5" opacity=".85"/></g>'
+      + '<g id="poLa"><circle cx="54" cy="206" r="30" fill="url(#pl)"/><path d="M54 84v100" stroke="#4a6665" stroke-width="1.1"/><path d="M54 84h-7" stroke="#4a6665" stroke-width="1.1"/><path d="M48 184h12l7 17H41Z" fill="#3d5654" stroke="#6d8b88" stroke-width=".8"/><path d="M41 201h26" stroke="#93b3ae" stroke-width=".7" opacity=".7"/><ellipse cx="54" cy="205" rx="4" ry="7" fill="#d8f4fa"/><ellipse cx="54" cy="206" rx="1.9" ry="4" fill="#ffffff"/></g>'
+      + '<g id="poLb"><circle cx="286" cy="206" r="30" fill="url(#pl)"/><path d="M286 84v100" stroke="#4a6665" stroke-width="1.1"/><path d="M286 84h7" stroke="#4a6665" stroke-width="1.1"/><path d="M280 184h12l7 17h-26Z" fill="#3d5654" stroke="#6d8b88" stroke-width=".8"/><path d="M273 201h26" stroke="#93b3ae" stroke-width=".7" opacity=".7"/><ellipse cx="286" cy="205" rx="4" ry="7" fill="#d8f4fa"/><ellipse cx="286" cy="206" rx="1.9" ry="4" fill="#ffffff"/></g>'
+      + '<g id="poPool" opacity=".2"><ellipse cx="54" cy="428" rx="52" ry="14" fill="url(#pl)"/><ellipse cx="286" cy="428" rx="52" ry="14" fill="url(#pl)"/></g>'
+      + '<ellipse id="poDrop" cx="170" cy="120" rx="1.7" ry="2.8" fill="#c3eaf2" opacity="0"/>'
+      + '<g id="poRip" opacity="0"><ellipse cx="170" cy="436" rx="8" ry="2.4" fill="none" stroke="#9fdcea" stroke-width="1.1"/></g>'
+      + '<g id="poFog" opacity=".18"><ellipse cx="80" cy="470" rx="150" ry="24" fill="#33505a"/><ellipse cx="270" cy="486" rx="140" ry="20" fill="#2c454e"/></g>'
       + '<rect x="188" y="82" width="116" height="76" rx="1.5" fill="#0d1a1c" stroke="#4f6f6c" stroke-width="1"/>'
       + '<text x="246" y="94" text-anchor="middle" font-size="5" letter-spacing="3" fill="#6e858a">实 验 记 录</text>'
       + num + dots
       + '<path d="M192 108l108 44M300 108l-108 44" stroke="#c14a36" stroke-width="1.2" opacity=".4"/>'
-      + '<text x="86" y="126" text-anchor="middle" font-size="7" letter-spacing="4.4" fill="#6e858a" opacity=".8">两 轮 · 一 周</text>'
+      + '<text x="102" y="126" text-anchor="middle" font-size="7" letter-spacing="4.4" fill="#6e858a" opacity=".8">两 轮 · 一 周</text>'
       + '</svg>';
   })(),
   mid: (function () {
@@ -1702,23 +1896,59 @@ SCENES.poison = {
 <rect width="340" height="520" fill="url(#pov)"/>
 </svg>`,
   build: function (host) {
-    const mdots = $all('.pm', host.querySelector('#lvlFar'));
+    const far = host.querySelector('#lvlFar');
+    const mdots = $all('.pm', far);
     const mu = $all('.mu', host.querySelector('#lvlMid'));
     const cgs = $all('.cg', host.querySelector('#lvlMid'));
     const root = host.querySelector('#poRoot');
     const gl = host.querySelector('#pbG');
-    let failT = -1e9, winK = 0, hopI = 0, hopT = -1e9;
+    const la = host.querySelector('#poLa'), lb = host.querySelector('#poLb');
+    const pool = host.querySelector('#poPool'), fog = host.querySelector('#poFog');
+    const drop = host.querySelector('#poDrop'), rip = host.querySelector('#poRip');
+    let failT = -1e9, winK = 0, hopI = 0, hopT = -1e9, pressK = 0, dropT = 0, scatterT = -1e9;
 
     return {
       frame: function (t, dt) {
         const step = Math.floor((t % 5600) / 280);
         for (let i = 0; i < mdots.length; i++) mdots[i].setAttribute('opacity', i < step ? '1' : '0');
-        if (gl) gl.setAttribute('transform', 'translate(' + (((t * .05) % 420) - 80).toFixed(1) + ' 0)');
-        if (root) root.setAttribute('transform', t - failT < 420 ? 'translate(' + (Math.sin((t - failT) * .055) * 3).toFixed(2) + ' 0)' : '');
-        if (t - hopT > 1250) { hopT = t; hopI = Math.floor(Math.random() * mu.length); }
+        if (gl) gl.setAttribute('transform', 'translate(' + (((t * (.05 + winK * .3)) % 420) - 80).toFixed(1) + ' 0)');
+        const fk = t - failT;
+        const flare = fk < 620 ? 1 + 1.5 * (1 - fk / 620) : 1;
+        if (root) root.setAttribute('transform', fk < 420 ? 'translate(' + (Math.sin(fk * .055) * 3).toFixed(2) + ' 0)' : '');
+        if (la) la.setAttribute('opacity', Math.min(1, (.7 + .3 * Math.abs(Math.sin(t * .0047)) * flare)).toFixed(2));
+        if (lb) lb.setAttribute('opacity', Math.min(1, (.66 + .34 * Math.abs(Math.sin(t * .0039 + 2)) * flare)).toFixed(2));
+        if (pool) pool.setAttribute('opacity', (.18 + .05 * Math.sin(t * .0011) + winK * .22).toFixed(3));
+        if (fog) fog.setAttribute('opacity', (.18 + pressK * .12 - winK * .16).toFixed(3));
+        if (fog) fog.setAttribute('transform', 'translate(' + (Math.sin(t * .00017) * 16).toFixed(1) + ' 0)');
+        /* 滴水：提示越多滴得越急 */
+        const gap = 3200 - pressK * 700;
+        const cyc = t - dropT;
+        if (cyc > gap) dropT = t;
+        const dc = (t - dropT) / 620;
+        if (drop && rip) {
+          if (dc < 1) {
+            const y = 120 + 316 * dc * dc;
+            drop.setAttribute('cy', y.toFixed(1));
+            drop.setAttribute('opacity', '.9');
+            rip.setAttribute('opacity', '0');
+          } else {
+            const rp = Math.min(1, (dc - 1) / .5);
+            drop.setAttribute('opacity', '0');
+            rip.setAttribute('opacity', (1 - rp).toFixed(2));
+            const s = 1 + rp * 2.4;
+            rip.setAttribute('transform', 'translate(170 436) scale(' + s.toFixed(2) + ') translate(-170 -436)');
+          }
+        }
+        if (t - hopT > 1250 && t - scatterT > 2400) { hopT = t; hopI = Math.floor(Math.random() * mu.length); }
         const hp = Math.min(1, (t - hopT) / 520);
         const hy = -8 * Math.sin(Math.PI * hp);
-        mu.forEach((m, i) => m.setAttribute('transform', i === hopI ? 'translate(0 ' + hy.toFixed(2) + ')' : ''));
+        const sc = (t - scatterT) / 900;
+        mu.forEach((m, i) => {
+          if (sc >= 0 && sc < 1) {
+            const d = Math.sin(Math.PI * sc) * (i % 2 ? 5 : -5);
+            m.setAttribute('transform', 'translate(' + d.toFixed(2) + ' ' + (-9 * Math.sin(Math.PI * sc)).toFixed(2) + ')');
+          } else m.setAttribute('transform', i === hopI ? 'translate(0 ' + hy.toFixed(2) + ')' : '');
+        });
         winK = Math.max(0, winK - dt / 2600);
         if (winK > 0) mdots.forEach(d => d.setAttribute('opacity', '1'));
       },
@@ -1726,10 +1956,11 @@ SCENES.poison = {
         winK = 1;
         mdots.forEach(d => d.setAttribute('opacity', '1'));
       },
-      fail: function () { failT = performance.now(); },
+      fail: function () { failT = performance.now(); scatterT = performance.now(); },
+      press: function (k) { pressK = k; },
       hit: function (el) {
         const cg = el.closest && el.closest('[data-hit="cage"]');
-        if (cg) { hopT = performance.now() - 400; hopI = Math.max(0, cgs.indexOf(cg)); sfx('paper'); return; }
+        if (cg) { hopT = performance.now() - 400; hopI = Math.max(0, cgs.indexOf(cg)); sfx('paper'); buzz(10); return; }
         sfx('lock');
       }
     };
@@ -1839,6 +2070,8 @@ function sfx(name) {
     hiss(.05, .14, 3200, 1700, 'highpass'); blip(1240, 620, .16, 'triangle', .06);
     setTimeout(() => { hiss(.04, .1, 3600, 2100, 'highpass'); blip(880, 900, .2, 'sine', .05); }, 130);
   }
+  else if (name === 'sel') { blip(760, 660, .085, 'triangle', .048); hiss(.03, .03, 1600, 900, 'lowpass'); }
+  else if (name === 'clunk') { hiss(.085, .2, 1500, 260, 'lowpass'); blip(126, 62, .19, 'triangle', .075); }
   else if (name === 'ok') { hiss(.05, .1, 3000, 2000, 'highpass'); blip(680, 680, .16, 'sine', .09); setTimeout(() => blip(1020, 1020, .42, 'sine', .075), 105); }
   else if (name === 'no') { blip(250, 148, .34, 'triangle', .095); }
   else if (name === 'paper') { hiss(.66, .13, 1100, 240, 'lowpass'); blip(280, 430, .5, 'sine', .045); }
